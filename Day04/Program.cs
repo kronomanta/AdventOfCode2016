@@ -34,7 +34,17 @@ namespace Day04
                 checksumLetters = checksumLetters.Substring(1, checksumLetters.Length - 2);
 
                 if (string.Join("", letters.OrderByDescending(x => x.Value).ThenBy(x => x.Key).Take(5).Select(x => x.Key)) == checksumLetters)
-                    realIDSum += int.Parse(lastSeg.Substring(0, lastSeg.IndexOf('[')));
+                {
+                    int code = int.Parse(lastSeg.Substring(0, lastSeg.IndexOf('[')));
+                    //realIDSum += code;
+
+                    //real room data
+                    string fullname = string.Join("", string.Join(" ", segments.Take(segments.Length - 1)).Select(x => (char)(x == ' ' ? x : (x - 'a' + code) % 26 + 'a')));
+
+                    if (fullname.Contains("north"))
+                        //System.Console.WriteLine(line + " " + fullname);
+                        realIDSum = code;
+                }
             }
 
 
