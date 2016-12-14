@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -12,11 +13,12 @@ namespace Day09
         static void Main(string[] args)
         {
 
-            int part1 = 0, part2 = 0;
+            long part1 = 0;
+            BigInteger part2 = 0;
             foreach (string line in System.IO.File.ReadLines(@"..\..\Day09_input.txt"))
             {
-                part1 += DecompressLinePart1(line).Length;
-                part2 += DecompressLinePart2(line).Sum(x => x.Length);
+                //part1 += DecompressLinePart1(line).Length;
+                part2 += DecompressLinePart2(line);
             }
 
             System.Console.WriteLine("part1: {0}", part1);
@@ -33,120 +35,207 @@ namespace Day09
 
         public static string DecompressLinePart1(string line)
         {
-            return string.Concat(DecompressLine(line));
+            System.DateTime now = System.DateTime.Now;
+            System.Console.WriteLine("Part1 started: {0}", now);
+            string decompressed = string.Concat(DecompressLine(line));
+
+            System.DateTime finished = System.DateTime.Now;
+            System.Console.WriteLine("Part1 finished: {0}, elapsed: {1}", finished, (finished - now).TotalMilliseconds);
+
+
+            return decompressed;
         }
 
-        public static List<string> DecompressLine(string line)
+        public static IEnumerable<string> DecompressLine(string line)
         {
-            if (!markerReg.IsMatch(line)) return new List<string> { line };
-
-            List<string> segments = new List<string>();
-
-            StringBuilder decompressedData = new StringBuilder();
-            var state = State.NormalLetter;
-
-            int charSeqSize = 0;
-
-            string numbers = "";
-
-            for(int i = 0; i < line.Length; i++)
+            if (!markerReg.IsMatch(line))
             {
-                switch (state)
+                yield return line;
+            }
+            else
+            {
+                StringBuilder decompressedData = new StringBuilder();
+                var state = State.NormalLetter;
+
+                int charSeqSize = 0;
+
+                string numbers = "";
+
+                for (int i = 0; i < line.Length; i++)
                 {
-                    case State.NormalLetter:
-                        if (line[i] == '(')
-                        {
-                            if (decompressedData.Length > 0)
+                    switch (state)
+                    {
+                        case State.NormalLetter:
+                            if (line[i] == '(')
                             {
-                                segments.Add(decompressedData.ToString());
-                                decompressedData.Clear();
+                                if (decompressedData.Length > 0)
+                                {
+                                    yield return decompressedData.ToString();
+                                    decompressedData.Clear();
+                                }
+
+                                state = State.CharSeqSelector;
                             }
-                            
-                            state = State.CharSeqSelector;
-                        }
-                        else
-                            decompressedData.Append(line[i]);
-                        break;
-                    case State.CharSeqSelector:
-                        if (line[i] == 'x')
-                        {
-                            state = State.RepetitionSelector;
-                            charSeqSize = int.Parse(numbers);
-                            numbers = "";
-                        }
-                        else
-                        {
-                            numbers += line[i];
-                        }
-                        break;
-                    case State.RepetitionSelector:
-                        if (line[i] == ')')
-                        {
-                            for(int j=0; j< int.Parse(numbers); j++)
+                            else
+                                decompressedData.Append(line[i]);
+                            break;
+                        case State.CharSeqSelector:
+                            if (line[i] == 'x')
                             {
-                                decompressedData.Append(line.Substring(i + 1, charSeqSize));
+                                state = State.RepetitionSelector;
+                                charSeqSize = int.Parse(numbers);
+                                numbers = "";
                             }
-
-                            if (decompressedData.Length > 0)
+                            else
                             {
-                                segments.Add(decompressedData.ToString());
-                                decompressedData.Clear();
+                                numbers += line[i];
                             }
+                            break;
+                        case State.RepetitionSelector:
+                            if (line[i] == ')')
+                            {
+                                for (int j = 0; j < int.Parse(numbers); j++)
+                                {
+                                    decompressedData.Append(line.Substring(i + 1, charSeqSize));
+                                }
 
-                            state = State.NormalLetter;
-                            //move forward
-                            i += charSeqSize;
-                            numbers = "";
+                                if (decompressedData.Length > 0)
+                                {
+                                    yield return decompressedData.ToString();
+                                    decompressedData.Clear();
+                                }
 
-                        }
-                        else
-                        {
-                            numbers += line[i];
-                        }
-                        break;
+                                state = State.NormalLetter;
+                                //move forward
+                                i += charSeqSize;
+                                numbers = "";
+
+                            }
+                            else
+                            {
+                                numbers += line[i];
+                            }
+                            break;
+                    }
+
                 }
 
+                //remaining letters
+                if (decompressedData.Length > 0)
+                {
+                    yield return decompressedData.ToString();
+                }
             }
-
-            //remaining letters
-            if (decompressedData.Length > 0)
-            {
-                segments.Add(decompressedData.ToString());
-                decompressedData.Clear();
-            }
-
-            return segments;
         }
 
-        public static List<string> DecompressLinePart2(string line)
+        public static IEnumerable<BigInteger> CountDecompressedLine(string line)
         {
-            //UNDONE 2016.12.11, outofmemoryexception :)
-            return new List<string>();
-
-
-
-            List<string> final = new List<string>();
-            Queue<string> segments = new Queue<string>();
-            segments.Enqueue(line);
-
-            do
+            if (line.Contains('('))
             {
-                string input = segments.Dequeue();
-                var segs = DecompressLine(input);
-                if (segs[0] == input)
+                StringBuilder decompressedData = new StringBuilder();
+                var state = State.NormalLetter;
+
+                int charSeqSize = 0;
+
+                string numbers = "";
+
+                for (int i = 0; i < line.Length; i++)
                 {
-                    //processed
-                    final.Add(segs[0]);
-                }
-                else
-                {
-                    segs.ForEach(segments.Enqueue);
+                    switch (state)
+                    {
+                        case State.NormalLetter:
+                            if (line[i] == '(')
+                            {
+                                if (decompressedData.Length > 0)
+                                {
+                                    BigInteger l = 0;
+                                    foreach (BigInteger r in CountDecompressedLine(decompressedData.ToString()))
+                                        l += r;
+                                    yield return l;
+
+                                    decompressedData = new StringBuilder();
+                                }
+
+                                state = State.CharSeqSelector;
+                            }
+                            else
+                                decompressedData.Append(line[i]);
+                            break;
+                        case State.CharSeqSelector:
+                            if (line[i] == 'x')
+                            {
+                                state = State.RepetitionSelector;
+                                charSeqSize = int.Parse(numbers);
+                                numbers = "";
+                            }
+                            else
+                            {
+                                numbers += line[i];
+                            }
+                            break;
+                        case State.RepetitionSelector:
+                            if (line[i] == ')')
+                            {
+                                int repetition = int.Parse(numbers);
+                                for (int j = 0; j < repetition; j++)
+                                {
+                                    string data = line.Substring(i + 1, charSeqSize);
+                                    decompressedData.Append(data);
+                                }
+
+                                if (decompressedData.Length > 0)
+                                {
+                                    BigInteger l = 0;
+                                    foreach (BigInteger r in CountDecompressedLine(decompressedData.ToString()))
+                                        l += r;
+                                    yield return l;
+
+                                    decompressedData = new StringBuilder();
+                                }
+
+                                state = State.NormalLetter;
+                                //move forward
+                                i += charSeqSize;
+                                numbers = "";
+
+                            }
+                            else
+                            {
+                                numbers += line[i];
+                            }
+                            break;
+                    }
+
                 }
 
+                //remaining letters
+                if (decompressedData.Length > 0)
+                {
+                    BigInteger l = 0;
+                    foreach (BigInteger r in CountDecompressedLine(decompressedData.ToString()))
+                        l += r;
+                    yield return l;
+                }
             }
-            while (segments.Count > 0);
-            
-            return final;
+            else
+            {
+                yield return line.Length;
+            }
+        }
+
+
+        public static BigInteger DecompressLinePart2(string line)
+        {
+            System.DateTime now = System.DateTime.Now;
+            System.Console.WriteLine("Part2 started: {0}", now);
+            BigInteger length = 0;
+            foreach (BigInteger l in CountDecompressedLine(line))
+                length += l;
+
+            System.DateTime finished = System.DateTime.Now;
+            System.Console.WriteLine("Part2 finished: {0}, elapsed: {1}", finished, finished - now);
+
+            return length;
         }
 
     }

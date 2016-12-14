@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace UnitTestProject1
 {
@@ -29,16 +30,16 @@ namespace UnitTestProject1
         {
             foreach (var item in new[]
             {
-                new KeyValuePair<string, List<string>>("ADVENT", new List<string> { "ADVENT" }),
-                new KeyValuePair<string, List<string>>("A(1x5)BC", new List<string> { "A", "BBBBB", "C"}),
-                new KeyValuePair<string, List<string>>("(3x3)XYZ", new List<string> { "XYZXYZXYZ"}),
-                new KeyValuePair<string, List<string>>("A(2x2)BCD(2x2)EFG", new List<string> { "A", "BCBC", "D", "EFEF", "G"}),
-                new KeyValuePair<string, List<string>>("(6x1)(1x3)A", new List<string> { "AAA"}),
-                new KeyValuePair<string, List<string>>("X(8x2)(3x3)ABCY", new List<string> { "X", "Y", "ABCABCABC", "ABCABCABC"}),
+                new KeyValuePair<string, int>("ADVENT", 6),
+                new KeyValuePair<string, int>("A(1x5)BC", 7),
+                new KeyValuePair<string, int>("(3x3)XYZ", 9),
+                new KeyValuePair<string, int>("A(2x2)BCD(2x2)EFG", 11),
+                new KeyValuePair<string, int>("(6x1)(1x3)A", 3),
+                new KeyValuePair<string, int>("X(8x2)(3x3)ABCY", 20),
             })
             {
-                List<string> actual = Day09.Program.DecompressLinePart2(item.Key);
-                CollectionAssert.AreEqual(item.Value, actual);
+                BigInteger actual = Day09.Program.DecompressLinePart2(item.Key);
+                Assert.AreEqual(item.Value, actual);
             }
         }
     }
