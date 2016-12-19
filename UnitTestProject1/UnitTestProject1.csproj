@@ -59,6 +59,10 @@
       <Project>{54cd985a-5567-4094-9d5f-ad74f84624a1}</Project>
       <Name>Day09</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Day13\Day13.csproj">
+      <Project>{a47bd7b5-d72f-439e-a4ad-ff836f026abd}</Project>
+      <Name>Day13</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
